@@ -25,6 +25,7 @@ abstract class ModalComponent extends Component implements Contract
         '5xl' => 'sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-5xl',
         '6xl' => 'sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-6xl',
         '7xl' => 'sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-7xl',
+        'full' => 'max-w-3xl'
     ];
 
     public function destroySkippedModals(): self
