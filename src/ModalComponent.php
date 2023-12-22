@@ -15,10 +15,10 @@ abstract class ModalComponent extends Component implements Contract
     public bool $destroySkipped = false;
 
     protected static array $maxWidths = [
-        'sm'  => 'sm:max-w-sm',
-        'md'  => 'sm:max-w-md',
-        'lg'  => 'sm:max-w-md md:max-w-lg',
-        'xl'  => 'sm:max-w-md md:max-w-xl',
+        'sm' => 'sm:max-w-sm',
+        'md' => 'sm:max-w-md',
+        'lg' => 'sm:max-w-md md:max-w-lg',
+        'xl' => 'sm:max-w-md md:max-w-xl',
         '2xl' => 'sm:max-w-md md:max-w-xl lg:max-w-2xl',
         '3xl' => 'sm:max-w-md md:max-w-xl lg:max-w-3xl',
         '4xl' => 'sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-4xl',
@@ -58,7 +58,7 @@ abstract class ModalComponent extends Component implements Contract
 
     public function closeModal(): void
     {
-        $this->emit('closeModal', $this->forceClose, $this->skipModals, $this->destroySkipped);
+        $this->dispatch('closeModal', force: $this->forceClose, skipPreviousModals: $this->skipModals, destroySkipped: $this->destroySkipped);
     }
 
     public function closeModalWithEvents(array $events): void
@@ -69,12 +69,12 @@ abstract class ModalComponent extends Component implements Contract
 
     public static function modalMaxWidth(): string
     {
-        return config('livewire-ui-modal.component_defaults.modal_max_width', '2xl');
+        return config('wire-elements-modal.component_defaults.modal_max_width', '2xl');
     }
 
     public static function modalMaxWidthClass(): string
     {
-        if (!array_key_exists(static::modalMaxWidth(), static::$maxWidths)) {
+        if (! array_key_exists(static::modalMaxWidth(), static::$maxWidths)) {
             throw new InvalidArgumentException(
                 sprintf('Modal max width [%s] is invalid. The width must be one of the following [%s].',
                     static::modalMaxWidth(), implode(', ', array_keys(static::$maxWidths))),
@@ -83,30 +83,30 @@ abstract class ModalComponent extends Component implements Contract
 
         return static::$maxWidths[static::modalMaxWidth()];
     }
-    
+
     public static function closeModalOnClickAway(): bool
     {
-        return config('livewire-ui-modal.component_defaults.close_modal_on_click_away', true);
+        return config('wire-elements-modal.component_defaults.close_modal_on_click_away', true);
     }
 
     public static function closeModalOnEscape(): bool
     {
-        return config('livewire-ui-modal.component_defaults.close_modal_on_escape', true);
+        return config('wire-elements-modal.component_defaults.close_modal_on_escape', true);
     }
 
     public static function closeModalOnEscapeIsForceful(): bool
     {
-        return config('livewire-ui-modal.component_defaults.close_modal_on_escape_is_forceful', true);
+        return config('wire-elements-modal.component_defaults.close_modal_on_escape_is_forceful', true);
     }
 
     public static function dispatchCloseEvent(): bool
     {
-        return config('livewire-ui-modal.component_defaults.dispatch_close_event', false);
+        return config('wire-elements-modal.component_defaults.dispatch_close_event', false);
     }
 
     public static function destroyOnClose(): bool
     {
-        return config('livewire-ui-modal.component_defaults.destroy_on_close', false);
+        return config('wire-elements-modal.component_defaults.destroy_on_close', false);
     }
 
     private function emitModalEvents(array $events): void
@@ -117,9 +117,9 @@ abstract class ModalComponent extends Component implements Contract
             }
 
             if (is_numeric($component)) {
-                $this->emit($event, ...$params ?? []);
+                $this->dispatch($event, ...$params ?? []);
             } else {
-                $this->emitTo($component, $event, ...$params ?? []);
+                $this->dispatch($event, ...$params ?? [])->to($component);
             }
         }
     }

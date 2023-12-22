@@ -6,6 +6,45 @@
 <a href="https://packagist.org/packages/wire-elements/modal"><img src="https://img.shields.io/packagist/l/wire-elements/modal" alt="License"></a>
 </p>
 
+## Livewire v3
+This is the readme for Livewire v3. **If you are looking for the readme for Livewire v2 [click here](https://github.com/wire-elements/modal/tree/1.0.0).**
+
+### Upgrading from v2
+
+You can use the following command to automate the upgrade process:
+
+```shell
+php artisan livewire:upgrade --run-only wire-elements-modal-upgrade
+```
+
+Please review the changes and ensure they follow the new convention set by Livewire v3:
+
+```blade
+<-- Before -->
+<button wire:click="$emit('openModal', 'users')">Show Users</button>
+<!-- After -->
+<button wire:click="$dispatch('openModal', {component: 'users'})">Show Users</button>
+
+<-- Before -->
+<button wire:click="$emit('openModal', 'edit-user', {user: 5})">Edit User</button>
+<!-- After -->
+<button wire:click="$dispatch('openModal', {component: 'edit-user', arguments: {user: 5}})">Edit User</button>
+```
+
+The old component name is being deprecated. Replace `@livewire('livewire-ui-modal')` with `@livewire('wire-elements-modal')`.
+
+The config file has been renamed as well. If you've published the config in the past, you will have to do so again and make the necessary changes:
+
+```shell
+php artisan vendor:publish --tag=wire-elements-modal-config
+```
+
+After upgrading, make sure to clear your view cache:
+
+```shell
+php artisan view:clear
+```
+
 ## About Wire Elements Modal
 Wire Elements Modal is a Livewire component that provides you with a modal that supports multiple child modals while maintaining state.
 
@@ -18,36 +57,25 @@ Click the image above to read a full article on using the Wire Elements modal pa
 To get started, require the package via Composer:
 
 ```
-composer require wire-elements/modal
+composer require wire-elements/modal:^2.0
 ```
 
 ## Livewire directive
-Add the Livewire directive `@livewire('livewire-ui-modal')` directive to your template.
+Add the Livewire directive `@livewire('wire-elements-modal')` directive to your template.
 ```html
 <html>
 <body>
     <!-- content -->
 
-    @livewire('livewire-ui-modal')
+    @livewire('wire-elements-modal')
 </body>
 </html>
-```
-
-## Alpine
-Livewire Elements Modal requires [Alpine](https://github.com/alpinejs/alpine). You can use the official CDN to quickly include Alpine:
-
-```html
-<!-- Alpine v2 -->
-<script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
-
-<!-- Alpine v3 -->
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 ```
 
 ## TailwindCSS
 The base modal is made with TailwindCSS. If you use a different CSS framework I recommend that you publish the modal template and change the markup to include the required classes for your CSS framework.
 ```shell
-php artisan vendor:publish --tag=livewire-ui-modal-views
+php artisan vendor:publish --tag=wire-elements-modal-views
 ```
 
 
@@ -71,37 +99,37 @@ class EditUser extends ModalComponent
 ```
 
 ## Opening a modal
-To open a modal you will need to emit an event. To open the `EditUser` modal for example:
+To open a modal you will need to dispatch an event. To open the `EditUser` modal for example:
 
 ```html
 <!-- Outside of any Livewire component -->
-<button onclick="Livewire.emit('openModal', 'edit-user')">Edit User</button>
+<button onclick="Livewire.dispatch('openModal', { component: 'edit-user' })">Edit User</button>
 
 <!-- Inside existing Livewire component -->
-<button wire:click="$emit('openModal', 'edit-user')">Edit User</button>
+<button wire:click="$dispatch('openModal', { component: 'edit-user' })">Edit User</button>
 
 <!-- Taking namespace into account for component Admin/Actions/EditUser -->
-<button wire:click="$emit('openModal', 'admin.actions.edit-user')">Edit User</button>
+<button wire:click="$dispatch('openModal', { component: 'admin.actions.edit-user' })">Edit User</button>
 ```
 
 ## Passing parameters
-To open the `EditUser` modal for a specific user we can pass the user id (notice the single quotes):
+To open the `EditUser` modal for a specific user we can pass the user id:
 
 ```html
 <!-- Outside of any Livewire component -->
-<button onclick='Livewire.emit("openModal", "edit-user", {{ json_encode(["user" => $user->id]) }})'>Edit User</button>
+<button onclick="Livewire.dispatch('openModal', { component: 'edit-user', arguments: { user: {{ $user->id }} }})">Edit User</button>
 
 <!-- Inside existing Livewire component -->
-<button wire:click='$emit("openModal", "edit-user", {{ json_encode(["user" => $user->id]) }})'>Edit User</button>
+<button wire:click="$dispatch('openModal', { component: 'edit-user', arguments: { user: {{ $user->id }} }})">Edit User</button>
 
 <!-- If you use a different primaryKey (e.g. email), adjust accordingly -->
-<button wire:click='$emit("openModal", "edit-user", {{ json_encode(["user" => $user->email]) }})'>Edit User</button>
+<button wire:click="$dispatch('openModal', { component: 'edit-user', arguments: { user: {{ $user->email }} }})">Edit User</button>
 
-<!-- Example of passing multiple parameters -->
-<button wire:click='$emit("openModal", "edit-user", {{ json_encode([$user->id, $isAdmin]) }})'>Edit User</button>
+<!-- Example of passing multiple arguments -->
+<button wire:click="$dispatch('openModal', { component: 'edit-user', arguments: { user: {{ $user->id }}, advancedMode: true }})">Edit User</button>
 ```
 
-The parameters are passed to the `mount` method on the modal component:
+The parameters are injected into the modal component and the model will be automatically fetched from the database if the type is defined:
 
 ```php
 <?php
@@ -113,13 +141,14 @@ use LivewireUI\Modal\ModalComponent;
 
 class EditUser extends ModalComponent
 {
+    // This will inject just the ID
+    // public int $user;
+
     public User $user;
 
-    public function mount(User $user)
+    public function mount()
     {
-        Gate::authorize('update', $user);
-        
-        $this->user = $user;
+        Gate::authorize('update', $this->user);
     }
 
     public function render()
@@ -129,6 +158,8 @@ class EditUser extends ModalComponent
 }
 ```
 
+The parameters are also passed to the `mount` method on the modal component.
+
 ## Opening a child modal
 From an existing modal you can use the exact same event and a child modal will be created:
 
@@ -136,14 +167,13 @@ From an existing modal you can use the exact same event and a child modal will b
 <!-- Edit User Modal -->
 
 <!-- Edit Form -->
-
-<button wire:click='$emit("openModal", "delete-user", {{ json_encode(["user" => $user->id]) }})'>Delete User</button>
+<button wire:click="$dispatch('openModal', { component: 'delete-user', arguments: { user: {{ $user->id }} }})">Delete User</button>
 ```
 
 ## Closing a (child) modal
-If for example a user clicks the 'Delete' button which will open a confirm dialog, you can cancel the deletion and return to the edit user modal by emitting the `closeModal` event. This will open the previous modal. If there is no previous modal the entire modal component is closed and the state will be reset.
+If for example a user clicks the 'Delete' button which will open a confirm dialog, you can cancel the deletion and return to the edit user modal by dispatching the `closeModal` event. This will open the previous modal. If there is no previous modal the entire modal component is closed and the state will be reset.
 ```html
-<button wire:click="$emit('closeModal')">No, do not delete</button>
+<button wire:click="$dispatch('closeModal')">No, do not delete</button>
 ```
 
 You can also close a modal from within your modal component class:
@@ -160,17 +190,15 @@ class EditUser extends ModalComponent
 {
     public User $user;
 
-    public function mount(User $user)   
+    public function mount()
     {
-        Gate::authorize('update', $user);
-        
-        $this->user = $user;
+        Gate::authorize('update', $this->user);
     }
 
     public function update()
     {
-        Gate::authorize('update', $user);
-            
+        Gate::authorize('update', $this->user);
+
         $this->user->update($data);
 
         $this->closeModal();
@@ -188,8 +216,8 @@ If you don't want to go to the previous modal but close the entire modal compone
 ```php
 public function update()
 {
-    Gate::authorize('update', $user);
-    
+    Gate::authorize('update', $this->user);
+
     $this->user->update($data);
 
     $this->forceClose()->closeModal();
@@ -201,12 +229,12 @@ Often you will want to update other Livewire components when changes have been m
 ```php
 public function update()
 {
-    Gate::authorize('update', $user);
-    
+    Gate::authorize('update', $this->user);
+
     $this->user->update($data);
 
     $this->closeModalWithEvents([
-        UserOverview::getName() => 'userModified',
+        UserOverview::class => 'userModified',
     ]);
 }
 ```
@@ -219,7 +247,7 @@ public function update()
     $this->user->update($data);
 
     $this->closeModalWithEvents([
-        UserOverview::getName() => ['userModified', [$this->user->id],
+        UserOverview::class => ['userModified', [$this->user->id]],
     ]);
 }
 ```
@@ -307,11 +335,11 @@ class DeleteTeam extends ModalComponent
     public function delete()
     {
         Gate::authorize('delete', $this->team);
-        
+
         $this->team->delete();
 
         $this->skipPreviousModal()->closeModalWithEvents([
-            TeamOverview::getName() => 'teamDeleted'
+            TeamOverview::class => 'teamDeleted'
         ]);
     }
 
@@ -322,7 +350,7 @@ class DeleteTeam extends ModalComponent
 }
 ```
 
-You can also optionally call the `destroySkippedModals()` method to destroy the skipped modals so if any are opened again their state will be reset  
+You can also optionally call the `destroySkippedModals()` method to destroy the skipped modals so if any are opened again their state will be reset
 
 
 
@@ -362,11 +390,11 @@ module.exports = {
 ```
 
 ## Configuration
-You can customize the Modal via the `livewire-ui-modal.php` config file. This includes some additional options like including CSS if you don't use TailwindCSS for your application, as well as the default modal properties.
+You can customize the Modal via the `wire-elements-modal.php` config file. This includes some additional options like including CSS if you don't use TailwindCSS for your application, as well as the default modal properties.
 
  To publish the config run the vendor:publish command:
 ```shell
-php artisan vendor:publish --tag=livewire-ui-modal-config
+php artisan vendor:publish --tag=wire-elements-modal-config
 ```
 
 ```php
@@ -406,13 +434,13 @@ return [
     |--------------------------------------------------------------------------
     |
     | Configure the default properties for a modal component.
-    | 
+    |
     | Supported modal_max_width
     | 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl'
     */
     'component_defaults' => [
         'modal_max_width' => '2xl',
-        
+
         'close_modal_on_click_away' => true,
 
         'close_modal_on_escape' => true,
@@ -420,7 +448,7 @@ return [
         'close_modal_on_escape_is_forceful' => true,
 
         'dispatch_close_event' => false,
-        
+
         'destroy_on_close' => false,
     ],
 ];

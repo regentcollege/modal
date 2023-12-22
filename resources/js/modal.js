@@ -5,6 +5,7 @@ window.LivewireUIModal = () => {
         activeComponent: false,
         componentHistory: [],
         modalWidth: null ,
+        listeners: [],
         getActiveComponentModalAttribute(key) {
             if (this.$wire.get('components')[this.activeComponent] !== undefined) {
                 return this.$wire.get('components')[this.activeComponent]['modalAttributes'][key];
@@ -32,18 +33,18 @@ window.LivewireUIModal = () => {
 
             if (this.getActiveComponentModalAttribute('dispatchCloseEvent') === true) {
                 const componentName = this.$wire.get('components')[this.activeComponent].name;
-                Livewire.emit('modalClosed', componentName);
+                Livewire.dispatch('modalClosed', {name: componentName});
             }
 
             if (this.getActiveComponentModalAttribute('destroyOnClose') === true) {
-                Livewire.emit('destroyComponent', this.activeComponent);
+                Livewire.dispatch('destroyComponent', {id: this.activeComponent});
             }
 
             if (skipPreviousModals > 0) {
                 for (var i = 0; i < skipPreviousModals; i++) {
                     if (destroySkipped) {
                         const id = this.componentHistory[this.componentHistory.length - 1];
-                        Livewire.emit('destroyComponent', id);
+                        Livewire.dispatch('destroyComponent', {id: id});
                     }
                     this.componentHistory.pop();
                 }
@@ -51,7 +52,7 @@ window.LivewireUIModal = () => {
 
             const id = this.componentHistory.pop();
 
-            if (id && force === false) {
+            if (id && !force) {
                 if (id) {
                     this.setActiveModalComponent(id, true);
                 } else {
@@ -100,7 +101,7 @@ window.LivewireUIModal = () => {
             });
         },
         focusables() {
-            let selector = 'a, button, input, textarea, select, details, [tabindex]:not([tabindex=\'-1\'])'
+            let selector = 'a, button, input:not([type=\'hidden\'], textarea, select, details, [tabindex]:not([tabindex=\'-1\'])'
 
             return [...this.$el.querySelectorAll(selector)]
                 .filter(el => !el.hasAttribute('disabled'))
@@ -140,12 +141,21 @@ window.LivewireUIModal = () => {
         init() {
             this.modalWidth = this.getActiveComponentModalAttribute('maxWidthClass');
 
-            Livewire.on('closeModal', (force = false, skipPreviousModals = 0, destroySkipped = false) => {
-                this.closeModal(force, skipPreviousModals, destroySkipped);
-            });
+            this.listeners.push(
+                Livewire.on('closeModal', (data) => {
+                    this.closeModal(data?.force ?? false, data?.skipPreviousModals ?? 0, data?.destroySkipped ?? false);
+                })
+            );
 
-            Livewire.on('activeModalComponentChanged', (id) => {
-                this.setActiveModalComponent(id);
+            this.listeners.push(
+                Livewire.on('activeModalComponentChanged', ({id}) => {
+                    this.setActiveModalComponent(id);
+                })
+            );
+        },
+        destroy() {
+            this.listeners.forEach((listener) => {
+                listener();
             });
         }
     };
