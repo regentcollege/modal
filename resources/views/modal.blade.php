@@ -45,13 +45,11 @@
                     x-trap.noscroll.inert="show && showActiveComponent"
                     aria-modal="true"
             >
-                @forelse($components as $id => $component)
+                @foreach($components as $id => $component)
                     <div x-show.immediate="activeComponent == '{{ $id }}'" x-ref="{{ $id }}" wire:key="{{ $id }}">
                         @livewire($component['name'], $component['arguments'], key($id))
                     </div>
-                @empty
-                    <div></div>
-                @endforelse
+                @endforeach
             </div>
         </div>
     </div>
