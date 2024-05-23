@@ -46,7 +46,7 @@
                     aria-modal="true"
             >
                 @foreach($components as $id => $component)
-                    <div x-show.immediate="activeComponent == '{{ $id }}'" x-ref="{{ $id }}" wire:key="component-{{ $id }}">
+                    <div x-show.immediate="activeComponent == '{{ $id }}'" x-ref="{{ $id }}" wire:replace wire:key="component-{{ $id }}">
                         @livewire($component['name'], $component['arguments'], key('component-'.$id))
                     </div>
                 @endforeach
