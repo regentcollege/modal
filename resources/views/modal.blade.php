@@ -46,10 +46,11 @@
                     aria-modal="true"
             >
                 @forelse($components as $id => $component)
-                    <div x-show.immediate="activeComponent == '{{ $id }}'" x-ref="{{ $id }}" wire:key="{{ $id }}">
-                        @livewire($component['name'], $component['arguments'], key($id))
+                    <div x-show.immediate="activeComponent == '{{ $id }}'" x-ref="{{ $id }}" wire:key="component-{{ $id }}">
+                        @livewire($component['name'], $component['arguments'], key('component-'.$id))
                     </div>
                 @empty
+                    <div>No components found.</div>
                 @endforelse
             </div>
         </div>
