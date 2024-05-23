@@ -53,19 +53,4 @@
             </div>
         </div>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const modalContainer = document.getElementById('modal-container');
-            if (modalContainer) {
-                const elements = modalContainer.querySelectorAll('[x-ref]');
-                elements.forEach(element => {
-                    if (!element) {
-                        console.error('Element not found');
-                    }
-                });
-            } else {
-                console.error('Modal container not found');
-            }
-        });
-    </script>
 </div>
