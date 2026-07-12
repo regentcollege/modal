@@ -8,14 +8,17 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Reflector;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\Mechanisms\ComponentRegistry;
 use ReflectionClass;
 
 class Modal extends Component
 {
+    #[Locked]
     public ?string $activeComponent;
 
+    #[Locked]
     public array $components = [];
 
     public function resetState(): void
@@ -27,7 +30,7 @@ class Modal extends Component
     public function openModal($component, $arguments = [], $modalAttributes = []): void
     {
         $requiredInterface = \LivewireUI\Modal\Contracts\ModalComponent::class;
-        $componentClass = app(ComponentRegistry::class)->getClass($component);
+        $componentClass = $this->resolveComponentClass($component);
         $reflect = new ReflectionClass($componentClass);
 
         if ($reflect->implementsInterface($requiredInterface) === false) {
@@ -82,7 +85,7 @@ class Modal extends Component
 
         if(enum_exists($parameterClassName)){
             $enum = $parameterClassName::tryFrom($parameterValue);
-        
+
             if($enum !== null){
                 return $enum;
             }
@@ -109,6 +112,15 @@ class Modal extends Component
     public function destroyComponent($id): void
     {
         unset($this->components[$id]);
+    }
+
+    protected function resolveComponentClass(string $component): string
+    {
+        if (class_exists(\Livewire\Mechanisms\ComponentRegistry::class)) {
+            return app(\Livewire\Mechanisms\ComponentRegistry::class)->getClass($component);
+        }
+
+        return app('livewire.finder')->resolveClassComponentClassName($component);
     }
 
     public function getListeners(): array

@@ -57,7 +57,7 @@ Click the image above to read a full article on using the Wire Elements modal pa
 To get started, require the package via Composer:
 
 ```
-composer require wire-elements/modal:^2.0
+composer require wire-elements/modal
 ```
 
 ## Livewire directive
@@ -305,6 +305,29 @@ By default, the modal will close when you click outside the modal. If you want t
      return true;
  }
  ```
+
+## Preventing closing the modal on Escape or on click away based on the modal state
+
+When a modal is closed on Escape or click away, `closingModalOnEscape` and `closingModalOnClickAway` are issued. Handle these events to prevent closing a modal based on its state, for example, if there are uncommitted changes.
+
+For example, if a modal has a `isDirty` property, it could have the following handler:
+
+```
+@script
+<script>
+    $wire.on('closingModalOnEscape', data => {
+        if ($wire.isDirty && !confirm('{{ __('You have unsaved changes. Are you sure you want to close this dialog?') }}')) {
+            data.closing = false;
+        }
+    });
+    $wire.on('closingModalOnClickAway', data => {
+        if ($wire.isDirty && !confirm('{{ __('You have unsaved changes. Are you sure you want to close this dialog?') }}')) {
+            data.closing = false;
+        }
+    });
+</script>
+@endscript
+```
 
 ## Skipping previous modals
 In some cases you might want to skip previous modals. For example:
